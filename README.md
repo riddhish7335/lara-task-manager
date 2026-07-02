@@ -11,6 +11,16 @@ Two roles share the app:
 
 There is no public registration. Accounts are created only by an admin (or seeded), which keeps the demo self-contained.
 
+## Screenshots
+
+| Login | Admin — Tasks |
+|---|---|
+| ![Login](docs/screenshots/login.png) | ![Admin Tasks](docs/screenshots/admin-tasks.png) |
+
+| Admin — Employees | Employee — My Tasks |
+|---|---|
+| ![Admin Employees](docs/screenshots/admin-employees.png) | ![Employee My Tasks](docs/screenshots/employee-my-tasks.png) |
+
 ## Tech Stack
 
 **Backend**
