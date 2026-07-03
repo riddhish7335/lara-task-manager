@@ -33,4 +33,33 @@ class EmployeeController extends Controller
 
         return response()->json($employee, 201);
     }
+
+    public function update(Request $request, User $employee)
+    {
+        abort_if($employee->role !== 'employee', 404);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email,'.$employee->id],
+            'password' => ['nullable', 'string', 'min:6'],
+        ]);
+
+        $employee->name = $data['name'];
+        $employee->email = $data['email'];
+        if (! empty($data['password'])) {
+            $employee->password = Hash::make($data['password']);
+        }
+        $employee->save();
+
+        return response()->json($employee);
+    }
+
+    public function destroy(User $employee)
+    {
+        abort_if($employee->role !== 'employee', 404);
+
+        $employee->delete();
+
+        return response()->json(['message' => 'Employee deleted.']);
+    }
 }

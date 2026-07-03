@@ -7,6 +7,10 @@ const form = ref({ name: '', email: '', password: '' })
 const error = ref('')
 const loading = ref(false)
 
+const editingId = ref(null)
+const editForm = ref({ name: '', email: '', password: '' })
+const editError = ref('')
+
 async function loadEmployees() {
   const { data } = await api.get('/employees')
   employees.value = data
@@ -24,6 +28,39 @@ async function createEmployee() {
   } finally {
     loading.value = false
   }
+}
+
+function startEdit(employee) {
+  editingId.value = employee.id
+  editError.value = ''
+  editForm.value = { name: employee.name, email: employee.email, password: '' }
+}
+
+function cancelEdit() {
+  editingId.value = null
+}
+
+async function saveEdit(employee) {
+  editError.value = ''
+  try {
+    const payload = { name: editForm.value.name, email: editForm.value.email }
+    if (editForm.value.password) {
+      payload.password = editForm.value.password
+    }
+    await api.put(`/employees/${employee.id}`, payload)
+    editingId.value = null
+    await loadEmployees()
+  } catch (e) {
+    editError.value = e.response?.data?.message || 'Could not update employee.'
+  }
+}
+
+async function deleteEmployee(employee) {
+  if (!confirm(`Delete ${employee.name}? Their assigned tasks will be deleted too.`)) {
+    return
+  }
+  await api.delete(`/employees/${employee.id}`)
+  await loadEmployees()
 }
 
 onMounted(loadEmployees)
@@ -57,20 +94,47 @@ onMounted(loadEmployees)
       </div>
     </div>
 
-    <table class="table table-striped">
+    <div v-if="editError" class="alert alert-danger py-2">{{ editError }}</div>
+
+    <table class="table table-striped align-middle">
       <thead>
         <tr>
           <th>Name</th>
           <th>Email</th>
+          <th>New Password</th>
+          <th style="width: 160px"></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="employee in employees" :key="employee.id">
-          <td class="text-capitalize">{{ employee.name }}</td>
-          <td>{{ employee.email }}</td>
+          <template v-if="editingId === employee.id">
+            <td><input v-model="editForm.name" type="text" class="form-control form-control-sm" /></td>
+            <td><input v-model="editForm.email" type="email" class="form-control form-control-sm" /></td>
+            <td>
+              <input
+                v-model="editForm.password"
+                type="password"
+                class="form-control form-control-sm"
+                placeholder="Leave blank to keep"
+              />
+            </td>
+            <td>
+              <button class="btn btn-sm btn-success me-1" @click="saveEdit(employee)">Save</button>
+              <button class="btn btn-sm btn-secondary" @click="cancelEdit">Cancel</button>
+            </td>
+          </template>
+          <template v-else>
+            <td class="text-capitalize">{{ employee.name }}</td>
+            <td>{{ employee.email }}</td>
+            <td class="text-muted">-</td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary me-1" @click="startEdit(employee)">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" @click="deleteEmployee(employee)">Delete</button>
+            </td>
+          </template>
         </tr>
         <tr v-if="employees.length === 0">
-          <td colspan="2" class="text-center text-muted">No employees yet.</td>
+          <td colspan="4" class="text-center text-muted">No employees yet.</td>
         </tr>
       </tbody>
     </table>

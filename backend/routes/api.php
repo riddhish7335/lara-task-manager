@@ -17,6 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/employees', [EmployeeController::class, 'index']);
         Route::post('/employees', [EmployeeController::class, 'store']);
+        Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
+        Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
         Route::post('/tasks', [TaskController::class, 'store']);
     });
 });
